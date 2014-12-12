@@ -1,0 +1,211 @@
+{% extends "parent.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}About{% endblock %}
+
+{% block navbar %}
+    <li><a href="{{ url_for('home') }}">Home</a></li>
+    <li class="active"><a href="#">About</a></li>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="page-header">
+      <h3>WTF is an Events DB?</h3> 
+    </div>
+
+      <p class="text-justify">
+      Based on work by the late great <a href="http://bitcoin-otc.com/viewratingdetail.php?nick=fbastage">
+        fbastage</a> an events DB tracks various user <a href="#events">events</a> on an IRC channel.  Specifically 
+      <a href="http://bitcoin-otc.com">#bitcoin-otc</a> on <a href="https://freenode.net/">freenode,</a> 
+      a channel over-run with scammers and sundry other unmentionables.  It's a
+      simple&#8211;and hopefully effective&#8211;defense against the scourge of theft and deceit in such an online community.
+      </p>
+      
+      <p class="lead text-center">Stop scammin'!</p>
+
+    <div class="page-header">
+      <h3 id="events">What Counts as an Event?</h3>
+    </div>
+
+      <dl class="dl-horizontal">
+        <dt>Join</dt>
+        <dd>When a client joins the channel</dd>
+
+        <dt>Kick</dt>
+        <dd>When a client is kicked from the channel</dd>
+
+        <dt>Mode</dt>
+        <dd>When a +/- {b,o,q,v} is set on a client</dd>
+
+        <dt>Part</dt>
+        <dd>When a client parts from the channel</dd>
+
+        <dt>Quit</dt>
+        <dd>When a client quits the IRC network</dd>
+
+        <dt>Rename</dt>
+        <dd>When a client's nick changes</dt>
+      </dl>
+
+    <div class="page-header">
+      <h3>How Can I Search For Events?</h3>
+    </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">Supported URLs</div>
+        <div class="panel-body">
+          <table class="table">
+            <tr>
+              <td><strong>/full/&lt;nick&gt;/&lt;user&gt;/&lt;host&gt;</strong></td>
+              <td>Search for events based on the nick, user, and hostname</td>
+            </tr>
+
+            <tr>
+              <td><strong>/geoip</strong></td>
+              <td>
+                Search for events based on <a href="http://www.telize.com/">GeoIP</a> data.
+                <br><br>
+                Supports the following query parameters:
+
+                <ul class="list-unstyled">
+                  <li>
+                    <strong>asn</strong>
+                    <span class="pull-right">
+                      <a href="https://www.iana.org/assignments/as-numbers/as-numbers.xhtml">
+                        Autonomous System Number
+                      </a>
+                    </span>
+                  </li>
+
+                  <li>
+                    <strong>cc</strong>
+                    <span class="pull-right">
+                      <a href="http://countrycode.org/">
+                        Country Code
+                      </a>
+                        , e.g., USA or GB
+                    </span>
+                  </li>
+
+                  <li>
+                    <strong>city</strong>
+                    <span class="pull-right">Full city</span>
+                  </li>
+
+                  <li>
+                    <strong>country</strong>
+                    <span class="pull-right">Full country name</span>
+                  </li>
+
+                  <li>
+                    <strong>ip</strong>
+                    <span class="pull-right">IPv4 or IPv6 address</span>
+                  </li>
+
+                  <li>
+                    <strong>isp</strong>
+                    <span class="pull-right">Dat Internet Service Provider</span>
+                  </li>
+
+                  <li>
+                    <strong>region</strong>
+                    <span class="pull-right">Corresponds to states, e.g., New York</span>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>/host/&lt;hostname&gt;</strong></td>
+              <td>Search for events based on hostname</td>
+            </tr>
+
+            <tr>
+              <td><strong>/nick/&lt;nickname&gt;</strong></td>
+              <td>Search for events based on nickname</td>
+            </tr>
+
+            <tr>
+              <td><strong>/user/&lt;username&gt;</strong></td>
+              <td>Search for events based on username</td>
+            </tr>
+        </table>
+      </div>
+      <div class="panel-footer">
+        All nicks, usernames and hostnames support the wildcard *.
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">Supported GET Parameters For All URLs</div>
+        <div class="panel-body">
+
+          <table class="table">
+            <tr>
+              <td><strong>events</strong></td>
+              <td>
+                + separated list of one or more of:
+                <br><br>
+                <ul class="list-unstyled" style="left-margin:200px;">
+                  <li>join</li>
+                  <li>kick</li>
+                  <li>mode</li>
+                  <li>part</li>
+                  <li>quit</li>
+                  <li>rename<li>
+                </ul>
+                If no events parameter is provided, defaults to all possible.
+              </td>
+            </tr>
+
+
+          <tr>
+            <td><strong>limit</strong></td>
+            <td>unsigned int for the number of results per page 
+                (defaults to {{ config['LIMIT_PER_PAGE'] }})</td>
+          </tr>
+
+          <tr>
+            <td><strong>page</strong></td>
+            <td>unsigned int for the page displayed based on the limit (defaults to 1)</td>
+          </tr>
+
+        </table>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">Supported GET Parameters For Some URLs</div>
+        <div class="panel-body">
+
+          <table class="table">
+            <tr>
+              <td><strong>flag</strong></dt>
+              <td>
+                Used with mode. 
+                <br>
+                + separated list of b, o, q, v.
+                <br>
+                If not specified, defaults to all possible.
+              </td>
+            </tr>
+
+            <tr>
+              <td><strong>plus</strong></td>
+              <td>
+                Used with mode. 
+                <br>
+                Either <em>true</em> or <em>false</em>
+                to indicate the setting or removal of a mode, respectively.
+                <br>
+                If not specified, defaults to both.
+              </td>
+            </tr>
+          </table>
+        </div>
+    </div>
+  </div>
+{% endblock %}

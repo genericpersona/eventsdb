@@ -1,0 +1,12 @@
+{ "server": "chat.freenode.net"
+, "port": 6697
+, "channels": ["bitcoin-otc"]
+, "nickname": ""
+, "password": null
+, "ssl": true
+, "force_ipv6": true
+, "nickserv_pw": ""
+, "username": ""
+, "realname": ""
+, "lineRate": 0.5
+}

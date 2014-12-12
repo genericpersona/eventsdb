@@ -1,0 +1,35 @@
+{% extends "parent.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="page-header">
+      <h1>#bitcoin-otc Events DB</h1>
+    </div>
+
+    <p class="lead">
+      Welcome to the <a href="http://bitcoin-otc.com/">#bitcoin-otc</a> 
+      Events DB!
+    </p>
+
+
+    <p class="text-justify">
+      If you have logs with event information that you're willing to share,
+      please contact <em>genericpersona</em> in IRC.  I would prefer logs
+      containing detailed
+      <a href="{{ url_for('about', _anchor='events') }}">events</a>.
+    </p>
+
+    <p class="text-justify">
+      If you have suggestions for improvments, the best place to contact me is
+      in IRC, but you can also use evil 
+      <a href="mailto:generic.persona@yahoo.com">SMTP</a>.
+    </p>
+
+    <p>
+      For more information on using this site, please read the 
+      <a href="{{ url_for('about') }}">about</a> page.
+    </p>
+  </div>
+{% endblock %}

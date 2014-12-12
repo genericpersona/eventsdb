@@ -1,0 +1,109 @@
+{% extends "parent.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block navbar %}
+    <li><a href="{{ url_for('home') }}">Home</a></li>
+    <li><a href="{{ url_for('about') }}">About</a></li>
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <br>
+
+    {% if events.count() > 0 %}
+      <ul class="pagination pagination-sm pull-right">
+        <li>
+          <a href="{{ g.replace_page(request.url, page if page == 1 else page - 1) }}">
+            &laquo;
+          </a>
+        </li>
+        {% for i in range(1, page + 1) %}
+          {% if i == page %}
+            <li class="active">
+          {% else %}
+            <li>
+          {% endif %}
+            <a href="{{ g.replace_page(request.url, i) }}">
+              {{ i }}
+            </a>
+          </li>
+        {% endfor %}
+        <li>
+          <a href="{{ g.replace_page(request.url, page + 1) }}">
+            &raquo;
+          </a>
+        </li>
+      </ul>
+
+      <table class="table table-hover"> 
+        <thead>
+          <tr class="row">
+            <th>Time</th>
+            <th>Nick</th>
+            <th>User</th>
+            <th>Host</th>
+            <th>GeoIP</th>
+            <th data-sortable="true">Event</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+        {% for event in events %}
+          <tr class="row">
+            <td>{{ g.epoch_to_str(event['ts']) }}</td>
+
+            <td>{{ event['nick'] }}</td>
+
+            <td>{{ event.get('user', '') }}</td>
+
+            <td>{{ event.get('host', '') }}</td>
+
+            <td>
+              {% if event['ip'] %}
+                <a href="http://www.telize.com/geoip/{{ event['ip'] }}">
+                  {{ event['ip'] }}
+                </a>
+              {% endif %}
+            </td>
+
+            <td>
+              {{ event['event']['type'] }}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <ul class="pagination pagination-sm pull-right">
+        <li>
+          <a href="{{ g.replace_page(request.url, page - 1) }}">
+            &laquo;
+          </a>
+        </li>
+        {% for i in range(1, page + 1) %}
+          {% if i == page %}
+            <li class="active">
+          {% else %}
+            <li>
+          {% endif %}
+            <a href="{{ g.replace_page(request.url, i) }}">
+              {{ i }}
+            </a>
+          </li>
+        {% endfor %}
+        <li>
+          <a href="{{ g.replace_page(request.url, page + 1) }}">
+            &raquo;
+          </a>
+        </li>
+      </ul>
+    {% else %}
+      <br><br>      
+      <h2 class="text-center">No results found</h2>
+    {% endif %}
+  </div>
+{% endblock %}
