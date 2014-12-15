@@ -5,7 +5,7 @@ import time
 
 from flask import Flask, g, render_template, request
 
-from flask.ext.pymongo import ASCENDING, PyMongo
+from flask.ext.pymongo import DESCENDING, PyMongo
 
 # Set up the Flask app
 app = Flask(__name__)
@@ -54,7 +54,7 @@ def event_to_str(eventd):
     '''Convert an event dict into a descriptive string.
     '''
 
-def get_events(findd, page=1, limit=None, sortts=(u'ts', ASCENDING)):
+def get_events(findd, page=1, limit=None, sortts=(u'ts', DESCENDING)):
     '''Retrieve events from the DB based on the parameters
     specified.
 
@@ -81,17 +81,16 @@ def parse_get_params(findd, rargs):
         rargs: dict
             The GET parameters in dict form
     '''
-    events = rargs.get(u'events', u'')
+    events = rargs.get(u'event', u'')
     mode = []   # List to hold options for the mode parameter
     if events:
         events_regex = []
         for event in events.split(u'+'):
-            if event in all_events():
-                events_regex.append(event)
+            if event.lower() in all_events():
+                events_regex.append(event.lower())
 
         if events_regex:
-            findd[u'events'] = {u'type': \
-                    re.compile(u'|'.join(events_regex), re.IGNORECASE)}
+            findd[u'event.type'] = re.compile(u'|'.join(events_regex)) 
 
     try:
         page = int(request.args['page'])
@@ -119,7 +118,7 @@ def replace_page(url, page):
 def to_g():
     '''Add needed functions to g
     '''
-    for func in ('epoch_to_str', 'replace_page'):
+    for func in ('epoch_to_str', 'event_to_str', 'replace_page'):
         if not hasattr(g, func):
             setattr(g, func, eval(func))
 
