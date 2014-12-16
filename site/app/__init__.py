@@ -32,7 +32,8 @@ def all_geoip_params():
 def deal_with_wildcard(s):
     '''Return a REGEX object if a wildcard is involved
     '''
-    if '*' in s:
+    if '*' in s: 
+        s = s.replace('*', '.*')
         return re.compile(s)
     else:
         return s
@@ -53,6 +54,30 @@ def epoch_to_str(ets, time_format='%d %b %Y %H:%M:%S'):
 def event_to_str(eventd):
     '''Convert an event dict into a descriptive string.
     '''
+    if eventd[u'type'] == u'join':
+        return u'Join'
+
+    elif eventd[u'type'] == u'quit':
+        return u'Quit{}'.format(u' ({})'.format(eventd[u'reason']))
+
+    elif eventd[u'type'] == u'rename':
+        return u'Rename to {}'.format(eventd[u'newname'])
+
+    elif eventd[u'type'] == u'part':
+        return u'Part{}'.format(u' ({})'.format(eventd[u'reason']))
+
+    elif eventd[u'type'] == u'kick':
+        kickee = u'{}'.format(eventd[u'by'][u'nick'])
+        return u'Kicked by {}{}'.format(kickee, 
+                            u' ({})'.format(eventd[u'reason']))
+
+    elif eventd[u'type'] == u'mode':
+        sign = u'+' if eventd[u'plus'] else u'-'
+        setter = eventd[u'by'][u'nick']
+        return u'Mode {}{} by {}'.format(sign, eventd[u'flag'], setter)
+
+    else:
+        return eventd[u'type']
 
 def get_events(findd, page=1, limit=None, sortts=(u'ts', DESCENDING)):
     '''Retrieve events from the DB based on the parameters
@@ -65,6 +90,22 @@ def get_events(findd, page=1, limit=None, sortts=(u'ts', DESCENDING)):
     skip = limit * (page - 1)
     events = mongo.db.events.find(findd, limit=limit, skip=skip)
     return events.sort([sortts])
+
+def get_events_count(findd):
+    '''Retrieve count of events from the DB based on the parameters
+    specified.
+    '''
+    return mongo.db.events.find(findd).count()
+
+def num_results(total, page, limit):
+    '''Return the number of results that should be shown on a page
+    given the total number of results, the current page, and the
+    limit per page.
+    '''
+    if page > total_pages(total, limit):
+        return 0
+
+    return total - ((page - 1) * limit)
 
 def parse_get_params(findd, rargs):
     '''Add parameters to a dictionary for passing
@@ -82,7 +123,6 @@ def parse_get_params(findd, rargs):
             The GET parameters in dict form
     '''
     events = rargs.get(u'event', u'')
-    mode = []   # List to hold options for the mode parameter
     if events:
         events_regex = []
         for event in events.split(u'+'):
@@ -92,17 +132,43 @@ def parse_get_params(findd, rargs):
         if events_regex:
             findd[u'event.type'] = re.compile(u'|'.join(events_regex)) 
 
-    try:
-        page = int(request.args['page'])
-    except:
-        page = 1
+    if u'mode' in events_regex:
+        parse_mode_params(findd, rargs)
 
     try:
         limit = int(request.args['limit'])
     except:
         limit = app.config['LIMIT_PER_PAGE']
 
+    try:
+        page = int(request.args['page'])
+    except:
+        page = 1
+
     return page, limit
+
+def parse_mode_params(findd, rargs):
+    '''Parse the GET parameters for querying the DB for different
+    mode settings.
+
+    Modifies the findd passed in.
+    '''
+    flags = rargs.get(u'flag', u'')
+    if flags:
+        flags_regex = []
+        for flag in flags.split(u'+'):
+            if flag in (u'b', u'o', u'q', u'v'):
+                flags_regex.append(flag)
+
+        if flags_regex:
+            findd[u'event.flag'] = re.compile(u'|'.join(flags_regex))
+
+    plus = rargs.get(u'plus', u'')
+    if plus:
+        if plus.lower() == u'true':
+            findd[u'event.plus'] = True
+        elif plus.lower() == u'false':
+            findd[u'event.plus'] = False
 
 def replace_page(url, page):
     '''Replace a page parameter in the URL passed in with
@@ -110,15 +176,33 @@ def replace_page(url, page):
     '''
     new_url = PAGE_REGEX.sub('page={}'.format(page), url)
     if not 'page=' in url and new_url == url:
-        new_url = '{}?page={}'.format(new_url, page)
+        new_url = '{}{}page={}'.format(new_url, 
+                '&' if '?' in url else '?', 
+                page)
 
     return new_url
+
+def total_pages(total, limit):
+    '''Return the number of pages given the total results
+    and the limit of results per page.
+    '''
+    q, r = divmod(total, limit)
+    if r == 0:
+        return q
+    else:
+        return q + 1
 
 @app.before_request
 def to_g():
     '''Add needed functions to g
     '''
-    for func in ('epoch_to_str', 'event_to_str', 'replace_page'):
+    funcs = ( 'epoch_to_str'
+            , 'event_to_str'
+            , 'num_results'
+            , 'replace_page'
+            , 'total_pages'
+            )
+    for func in funcs:
         if not hasattr(g, func):
             setattr(g, func, eval(func))
 
@@ -132,7 +216,7 @@ def not_found(error):
 def about():
     return render_template('about.html')
 
-@app.route('/full/<nick>/<user>/<host>')
+@app.route('/full/<nick>/<user>/<path:host>')
 def full(nick, user, host):
     # Start off with a dict for passing to find
     findd = { u'nick': deal_with_wildcard(nick)
@@ -144,7 +228,9 @@ def full(nick, user, host):
     page, limit = parse_get_params(findd, request.args)
 
     return render_template('events.html', 
+            count=get_events_count(findd),
             events=get_events(findd, page, limit), 
+            limit=limit,
             page=page, 
             title=u'{}!~{}@{}'.format(nick, user, host))
 
@@ -156,12 +242,19 @@ def geoip():
     for param in all_geoip_params():
         if param.lower() in request.args:
             if param == u'IP':
-                findd[param.lower()] = request.args[param.lower()]
+                findd[param.lower()] = \
+                        deal_with_wildcard(request.args[param.lower()])
             else:
-                findd['geoip'][param.lower()] = request.args[param.lower()]
+                findd[u'geoip.{}'.format(param.lower())] = \
+                        deal_with_wildcard(request.args[param.lower()])
+
+    # Add to findd and get the page and limit params
+    page, limit = parse_get_params(findd, request.args)
 
     return render_template('events.html', 
+            count=get_events_count(findd),
             events=get_events(findd, page, limit), 
+            limit=limit,
             page=page, 
             title=u'GeoIP')
 
@@ -169,7 +262,7 @@ def geoip():
 def home():
     return render_template('home.html')
 
-@app.route('/host/<hostname>')
+@app.route('/host/<path:hostname>')
 def host(hostname):
     # Start off with a dict for passing to find
     findd = {u'host': deal_with_wildcard(hostname)}
@@ -178,7 +271,9 @@ def host(hostname):
     page, limit = parse_get_params(findd, request.args)
 
     return render_template('events.html', 
+            count=get_events_count(findd),
             events=get_events(findd, page, limit), 
+            limit=limit,
             page=page, 
             title=hostname)
 
@@ -191,7 +286,9 @@ def nick(nickname):
     page, limit = parse_get_params(findd, request.args)
 
     return render_template('events.html', 
+            count=get_events_count(findd),
             events=get_events(findd, page, limit), 
+            limit=limit,
             page=page, 
             title=nickname)
 
@@ -204,7 +301,9 @@ def user(username):
     page, limit = parse_get_params(findd, request.args)
 
     return render_template('events.html', 
+            count=get_events_count(findd),
             events=get_events(findd, page, limit), 
+            limit=limit,
             page=page, 
             title=username)
 
