@@ -123,8 +123,8 @@ def parse_get_params(findd, rargs):
             The GET parameters in dict form
     '''
     events = rargs.get(u'event', u'')
+    events_regex = []
     if events:
-        events_regex = []
         for event in events.split(u'+'):
             if event.lower() in all_events():
                 events_regex.append(event.lower())
