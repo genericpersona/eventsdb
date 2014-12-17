@@ -9,12 +9,11 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
-
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="http://getbootstrap.com/examples/sticky-footer/sticky-footer.css">
     <link rel="stylesheet" href="http://getbootstrap.com/examples/navbar/navbar.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom_navbar.css') }}">
 
     {% block head %}
     {% endblock %}
@@ -25,7 +24,7 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <nav class="navbar-default navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" 
@@ -60,7 +59,7 @@
           | Source at <a href="https://github.com/genericpersona/eventsdb">Github</a>
           <br>
             Donations 
-            <a href="bitcoin:12H4pdBaNFb1gZcF89REjDJmTTPLdw9dMY?message=OEDBDonation">
+            <a href="bitcoin:12H4pdBaNFb1gZcF89REjDJmTTPLdw9dMY?label=OEDBDonation">
               12H4pdBaNFb1gZcF89REjDJmTTPLdw9dMY
             </a>
         </p>

@@ -6,6 +6,7 @@
       width: auto !important;
     }
   </style>
+
 {% endblock %}
 
 {% block title %}{{ title }}{% endblock %}
@@ -61,7 +62,12 @@
       <table class="table table-hover"> 
         <thead>
           <tr class="row">
-            <th>Time</th>
+            <th>
+              Time
+              <span class="glyphicon glyphicon-info-sign" 
+                rel="tooltip" title="All times given in UTC">
+             </span> 
+            </th>
             <th>Nick</th>
             <th>User</th>
             <th>Host</th>
@@ -134,6 +140,12 @@
           </li>
         </ul>
       </nav>
+
+      <script text="text/javascript">
+        $(document).ready(function(){
+          $("[rel=tooltip]").tooltip({ placement: 'top'});
+        });
+      </script>
     {% else %}
 
       <br><br>      
