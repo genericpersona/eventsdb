@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import time
 
@@ -237,15 +238,11 @@ def full(nick, user, host):
 @app.route('/geoip')
 def geoip():
     # Start off with a dict for passing to find and add params
-    findd = { u'geoip': {}}
+    findd = {}
 
     for param in all_geoip_params():
         if param.lower() in request.args:
-            if param == u'IP':
-                findd[param.lower()] = \
-                        deal_with_wildcard(request.args[param.lower()])
-            else:
-                findd[u'geoip.{}'.format(param.lower())] = \
+            findd[u'geoip.{}'.format(param.lower())] = \
                         deal_with_wildcard(request.args[param.lower()])
 
     # Add to findd and get the page and limit params
@@ -307,3 +304,7 @@ def user(username):
             page=page, 
             title=username)
 
+# Robots need not apply
+@app.route('/robots.txt')
+def robots():
+    return app.send_static_file(os.path.join('static', 'robots.txt'))
