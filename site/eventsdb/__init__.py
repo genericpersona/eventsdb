@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import fnmatch
 import os
 import re
 import time
@@ -34,8 +35,7 @@ def deal_with_wildcard(s):
     '''Return a REGEX object if a wildcard is involved
     '''
     if '*' in s: 
-        s = s.replace('*', '.*')
-        return re.compile(s)
+        return re.compile(fnmatch.translate(s))
     else:
         return s
 
