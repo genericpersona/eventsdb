@@ -136,11 +136,6 @@
       </div>
       <div class="panel-footer">
         All nicks, usernames, hostnames, and GeoIP fields, support the wildcard character *.  
-        <br>
-        All timestamps displayed for events listed above are in
-        <a href="https://en.wikipedia.org/wiki/Coordinated_Universal_Time">
-          UTC
-        </a>
         .
       </div>
     </div>
@@ -166,8 +161,18 @@
                 If no events parameter is provided, defaults to all possible.
               </td>
             </tr>
-
-
+   
+          <tr>
+            <td><strong>format</strong></td>
+            <td>
+              json (get the events as JSON instead of HTML)
+              <br>
+              Returns a dict with the key 'events', which is a list of dicts.  
+              <br>
+              Each list element contains event data, which is not sorted or ordered.
+            </td>
+          </tr>
+  
           <tr>
             <td><strong>limit</strong></td>
             <td>unsigned int for the number of results per page 

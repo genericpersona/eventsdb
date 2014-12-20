@@ -5,7 +5,7 @@ import os
 import re
 import time
 
-from flask import Flask, g, render_template, request
+from flask import Flask, g, jsonify, render_template, request
 
 from flask.ext.pymongo import DESCENDING, PyMongo
 
@@ -97,6 +97,15 @@ def get_events_count(findd):
     specified.
     '''
     return mongo.db.events.find(findd).count()
+
+def get_events_json(findd):
+    '''Using a given find dict, return the results from the database
+    in JSON.  Will be a list of dicts.
+    '''
+    cursor = mongo.db.events.find(findd)
+    results = [{k: v for k,v in result.items() if k != '_id'} \
+                for result in cursor]
+    return jsonify(events=results)
 
 def num_results(total, page, limit):
     '''Return the number of results that should be shown on a page
@@ -228,6 +237,10 @@ def full(nick, user, host):
     # Add to findd and get the page and limit params
     page, limit = parse_get_params(findd, request.args)
 
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
+
     return render_template('events.html', 
             count=get_events_count(findd),
             events=get_events(findd, page, limit), 
@@ -248,6 +261,10 @@ def geoip():
     # Add to findd and get the page and limit params
     page, limit = parse_get_params(findd, request.args)
 
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
+
     return render_template('events.html', 
             count=get_events_count(findd),
             events=get_events(findd, page, limit), 
@@ -267,6 +284,10 @@ def host(hostname):
     # Add to findd and get the page and limit params
     page, limit = parse_get_params(findd, request.args)
 
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
+
     return render_template('events.html', 
             count=get_events_count(findd),
             events=get_events(findd, page, limit), 
@@ -282,6 +303,10 @@ def nick(nickname):
     # Add to findd and get the page and limit params
     page, limit = parse_get_params(findd, request.args)
 
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
+
     return render_template('events.html', 
             count=get_events_count(findd),
             events=get_events(findd, page, limit), 
@@ -296,6 +321,10 @@ def user(username):
 
     # Add to findd and get the page and limit params
     page, limit = parse_get_params(findd, request.args)
+
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
 
     return render_template('events.html', 
             count=get_events_count(findd),
