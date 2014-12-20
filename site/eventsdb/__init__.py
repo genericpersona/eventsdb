@@ -80,6 +80,37 @@ def event_to_str(eventd):
     else:
         return eventd[u'type']
 
+def findd_response(findd, getd, title):
+    '''Encapsulates shared code for each event URL.
+    Given a dict to pass to MongoDB's find method, 
+    return the correct response to the web client.
+
+    Parameters
+    ----------
+        findd: dict
+            dict to pass to find for MongoDB
+
+        getd: dict
+            request get parameters
+
+        title: str
+            title of the page to render
+    '''
+    # Add to findd and get the page and limit params
+    page, limit = parse_get_params(findd, getd)
+
+    # Support JSON replies
+    if request.args.get('format', '').lower() == 'json':
+        return get_events_json(findd)
+
+    # Return the appropriate HTML
+    return render_template('events.html', 
+            count=get_events_count(findd),
+            events=get_events(findd, page, limit), 
+            limit=limit,
+            page=page, 
+            title=title)
+
 def get_events(findd, page=1, limit=None, sortts=(u'ts', DESCENDING)):
     '''Retrieve events from the DB based on the parameters
     specified.
@@ -234,19 +265,9 @@ def full(nick, user, host):
             , u'host': deal_with_wildcard(host)
             }
 
-    # Add to findd and get the page and limit params
-    page, limit = parse_get_params(findd, request.args)
-
-    # Support JSON replies
-    if request.args.get('format', '').lower() == 'json':
-        return get_events_json(findd)
-
-    return render_template('events.html', 
-            count=get_events_count(findd),
-            events=get_events(findd, page, limit), 
-            limit=limit,
-            page=page, 
-            title=u'{}!~{}@{}'.format(nick, user, host))
+    return findd_response(findd, 
+            request.args, 
+            u'{}!~{}@{}'.format(nick, user, host))
 
 @app.route('/geoip')
 def geoip():
@@ -258,19 +279,9 @@ def geoip():
             findd[u'geoip.{}'.format(param.lower())] = \
                         deal_with_wildcard(request.args[param.lower()])
 
-    # Add to findd and get the page and limit params
-    page, limit = parse_get_params(findd, request.args)
-
-    # Support JSON replies
-    if request.args.get('format', '').lower() == 'json':
-        return get_events_json(findd)
-
-    return render_template('events.html', 
-            count=get_events_count(findd),
-            events=get_events(findd, page, limit), 
-            limit=limit,
-            page=page, 
-            title=u'GeoIP')
+    return findd_response(findd, 
+            request.args, 
+            'GeoIP')
 
 @app.route('/')
 def home():
@@ -281,57 +292,27 @@ def host(hostname):
     # Start off with a dict for passing to find
     findd = {u'host': deal_with_wildcard(hostname)}
 
-    # Add to findd and get the page and limit params
-    page, limit = parse_get_params(findd, request.args)
-
-    # Support JSON replies
-    if request.args.get('format', '').lower() == 'json':
-        return get_events_json(findd)
-
-    return render_template('events.html', 
-            count=get_events_count(findd),
-            events=get_events(findd, page, limit), 
-            limit=limit,
-            page=page, 
-            title=hostname)
+    return findd_response(findd, 
+            request.args, 
+            hostname)
 
 @app.route('/nick/<nickname>')
 def nick(nickname):
     # Start off with a dict for passing to find
     findd = {u'nick': deal_with_wildcard(nickname)}
 
-    # Add to findd and get the page and limit params
-    page, limit = parse_get_params(findd, request.args)
-
-    # Support JSON replies
-    if request.args.get('format', '').lower() == 'json':
-        return get_events_json(findd)
-
-    return render_template('events.html', 
-            count=get_events_count(findd),
-            events=get_events(findd, page, limit), 
-            limit=limit,
-            page=page, 
-            title=nickname)
+    return findd_response(findd,
+            request.args,
+            nickname)
 
 @app.route('/user/<username>')
 def user(username):
     # Start off with a dict for passing to find
     findd = {u'user': deal_with_wildcard(username)}    
 
-    # Add to findd and get the page and limit params
-    page, limit = parse_get_params(findd, request.args)
-
-    # Support JSON replies
-    if request.args.get('format', '').lower() == 'json':
-        return get_events_json(findd)
-
-    return render_template('events.html', 
-            count=get_events_count(findd),
-            events=get_events(findd, page, limit), 
-            limit=limit,
-            page=page, 
-            title=username)
+    return findd_response(findd,
+            request.args,
+            nickname)
 
 # Robots need not apply
 @app.route('/robots.txt')
