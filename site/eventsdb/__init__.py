@@ -312,7 +312,7 @@ def user(username):
 
     return findd_response(findd,
             request.args,
-            nickname)
+            username)
 
 # Robots need not apply
 @app.route('/robots.txt')
