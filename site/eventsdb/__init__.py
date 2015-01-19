@@ -34,10 +34,7 @@ def all_geoip_params():
 def deal_with_wildcard(s):
     '''Return a REGEX object if a wildcard is involved
     '''
-    if '*' in s: 
-        return re.compile(fnmatch.translate(s))
-    else:
-        return s
+    return re.compile(fnmatch.translate(s), re.IGNORECASE)
 
 def epoch_to_str(ets, time_format='%d %b %Y %H:%M:%S'):
     '''Convert an epoch timestamp in UTC
