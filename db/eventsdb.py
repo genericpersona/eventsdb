@@ -69,10 +69,15 @@ class EventsDB(object):
         """
         # Fix any UnicodeErrors
         for k, v in eventd.items():
+            if type(v) != str:
+                continue
+
             try:
                 v.decode('utf-8')
             except UnicodeError:
                 eventd[k] = bson.binary.Binary(str(v))
+
+        # Now insertion is good
         return self.events.insert(eventd)
 
 def getEvent(q, edb):
