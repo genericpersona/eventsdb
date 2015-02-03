@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import traceback
 
+import bson
 from pymongo import MongoClient
 from twisted.python import log
 
@@ -12,6 +14,7 @@ class EventsDB(object):
         self.client = MongoClient(host, port)
         self.db = self.client[db_name]
         self.events = self.db[collection_name]
+        log.msg('Creating EventsDB object')
 
     def addEvent(self, eventd):
         """
@@ -64,6 +67,12 @@ class EventsDB(object):
                         
         Note: mode is only logged if it's changed on a user
         """
+        # Fix any UnicodeErrors
+        for k, v in eventd.items():
+            try:
+                v.decode('utf-8')
+            except UnicodeError:
+                eventd[k] = bson.binary.Binary(str(v))
         return self.events.insert(eventd)
 
 def getEvent(q, edb):
@@ -80,3 +89,4 @@ def getEvent(q, edb):
             edb.addEvent(eventd)
         except:
             log.err('Traceback: {}'.format(traceback.print_exc()))
+            log.err('System: {}'.format(sys.exc_info()[0]))
