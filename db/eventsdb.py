@@ -68,14 +68,18 @@ class EventsDB(object):
         Note: mode is only logged if it's changed on a user
         """
         # Fix any UnicodeErrors
-        for k, v in eventd.items():
-            if type(v) != str:
-                continue
+        if type(eventd) != list:
+            eventd = [eventd]
 
-            try:
-                v.decode('utf-8')
-            except UnicodeError:
-                eventd[k] = bson.binary.Binary(str(v))
+        for ed in eventd:
+            for k, v in ed.items():
+                if type(v) != str:
+                    continue
+
+                try:
+                    v.decode('utf-8')
+                except UnicodeError:
+                    ed[k] = bson.binary.Binary(str(v))
 
         # Now insertion is good
         return self.events.insert(eventd)
