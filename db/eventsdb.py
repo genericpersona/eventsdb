@@ -77,9 +77,9 @@ class EventsDB(object):
                     continue
 
                 try:
-                    v.decode('utf-8')
-                except UnicodeError:
-                    ed[k] = bson.binary.Binary(str(v))
+                    v.decode('utf-8', errors='ignore')
+                except:
+                    ed[k] = bson.binary.Binary(str(v).encode('utf-8', errors='ignore'))
 
         # Now insertion is good
         return self.events.insert(eventd)
