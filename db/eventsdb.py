@@ -73,16 +73,27 @@ class EventsDB(object):
 
         for ed in eventd:
             for k, v in ed.items():
-                if type(v) != str:
-                    continue
+                if type(v) == str:
+                    ed[k] = decodeStr(v)
 
-                try:
-                    v.decode('utf-8', errors='ignore')
-                except:
-                    ed[k] = bson.binary.Binary(str(v).encode('utf-8', errors='ignore'))
+                elif type(v) == dict:
+                    ed[k] = decodeDictStr(v)
 
         # Now insertion is good
         return self.events.insert(eventd)
+
+def decodeDictStr(d):
+    for k, v in d.items():
+        if type(v) == str:
+            d[k] = decodeStr(v)
+
+        elif type(v) == dict:
+            d[k] = decodeDictStr(v)
+
+    return d
+
+def decodeStr(s):
+    return s.decode('utf-8', errors='ignore')
 
 def getEvent(q, edb):
     '''
